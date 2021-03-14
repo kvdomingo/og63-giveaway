@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 import os
+import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -29,7 +30,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(os.environ.get('DEBUG')))
 
-ALLOWED_HOSTS = []
+PYTHON_ENV = os.environ.get('PYTHON_ENV')
+
+ALLOWED_HOSTS = [
+    '.herokuapp.com',
+]
 
 
 # Application definition
@@ -59,9 +64,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'giveaway.urls'
 
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = DEBUG
 
 CORS_ORIGIN_WHITELIST = [
+    'https://grownsquad-giveaway.vercel.app',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
 ]
@@ -88,16 +94,19 @@ WSGI_APPLICATION = 'giveaway.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME'),
-        'HOST': '127.0.0.1',
-        'PORT': 3306,
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
+if PYTHON_ENV == 'development':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME'),
+            'HOST': '127.0.0.1',
+            'PORT': 3306,
+            'USER': os.environ.get('DB_USER'),
+            'PASSWORD': os.environ.get('DB_PASSWORD'),
+        }
     }
-}
+else:
+    DATABASES = {'default': dj_database_url.config()}
 
 
 # Password validation
@@ -137,3 +146,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+DRAW_TOKEN = os.environ.get('DRAW_TOKEN')
+
+if PYTHON_ENV != 'development':
+    import django_heroku
+    django_heroku.settings(locals())

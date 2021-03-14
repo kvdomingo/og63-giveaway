@@ -8,7 +8,7 @@ class GiveawaySerializer(serializers.ModelSerializer):
     def get_participants(self, obj):
         queryset = obj.participants.all()
         serializer = ParticipantSerializer(queryset, many=True)
-        return serializer.data
+        return len(serializer.data)
 
     class Meta:
         model = Giveaway
@@ -18,4 +18,15 @@ class GiveawaySerializer(serializers.ModelSerializer):
 class ParticipantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Participant
+        fields = '__all__'
+
+
+class WinnerSerializer(serializers.ModelSerializer):
+    username = serializers.SerializerMethodField()
+
+    def get_username(self, obj):
+        return obj.participant.username
+
+    class Meta:
+        model = Winner
         fields = '__all__'
