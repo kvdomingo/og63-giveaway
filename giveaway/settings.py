@@ -36,6 +36,12 @@ ALLOWED_HOSTS = [
     '.herokuapp.com',
 ]
 
+if DEBUG:
+    ALLOWED_HOSTS.extend([
+        'localhost',
+        '127.0.0.1',
+    ])
+
 
 # Application definition
 
@@ -68,8 +74,8 @@ CORS_ORIGIN_ALLOW_ALL = DEBUG
 
 CORS_ORIGIN_WHITELIST = [
     'https://grownsquad-giveaway.vercel.app',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
+    'http://localhost',
+    'http://127.0.0.1',
 ]
 
 TEMPLATES = [
