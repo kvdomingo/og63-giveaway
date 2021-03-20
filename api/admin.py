@@ -15,6 +15,8 @@ class GiveawayAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Giveaway, GiveawayAdmin)
+admin.site.register(Participant)
+admin.site.register(Winner)
 
 admin.site.site_url = '/'
 admin.site.index_title = 'Admin'

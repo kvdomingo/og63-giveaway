@@ -1,5 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 .idea/
+.gcloudignore
+app.yaml
 
 ### Python template
 # Byte-compiled / optimized / DLL files
@@ -140,4 +142,3 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-
