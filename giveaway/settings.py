@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import os
 import dj_database_url
+import urllib
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -32,15 +33,13 @@ DEBUG = bool(int(os.environ.get('DEBUG')))
 
 PYTHON_ENV = os.environ.get('PYTHON_ENV')
 
-ALLOWED_HOSTS = [
-    '.herokuapp.com',
-]
+ALLOWED_HOSTS = ['*']
 
-if DEBUG:
-    ALLOWED_HOSTS.extend([
-        'localhost',
-        '127.0.0.1',
-    ])
+# if DEBUG:
+#     ALLOWED_HOSTS.extend([
+#         'localhost',
+#         '127.0.0.1',
+#     ])
 
 
 # Application definition
@@ -60,6 +59,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -70,13 +70,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'giveaway.urls'
 
-CORS_ORIGIN_ALLOW_ALL = DEBUG
+CORS_ORIGIN_ALLOW_ALL = True
 
-CORS_ORIGIN_WHITELIST = [
-    'https://grownsquad-giveaway.vercel.app',
-    'http://localhost',
-    'http://127.0.0.1',
-]
+# CORS_ORIGIN_WHITELIST = [
+#     'https://grownsquad-giveaway.vercel.app',
+#     'http://localhost',
+#     'http://127.0.0.1',
+# ]
 
 TEMPLATES = [
     {
@@ -101,18 +101,13 @@ WSGI_APPLICATION = 'giveaway.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 if PYTHON_ENV == 'development':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('DB_NAME'),
-            'HOST': '127.0.0.1',
-            'PORT': 3306,
-            'USER': os.environ.get('DB_USER'),
-            'PASSWORD': os.environ.get('DB_PASSWORD'),
-        }
-    }
+    DATABASE_CONFIG = dj_database_url.config()
 else:
-    DATABASES = {'default': dj_database_url.config()}
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    DATABASE_CONFIG = dj_database_url.parse(DATABASE_URL)
+    DATABASE_CONFIG['HOST'] = urllib.parse.unquote(DATABASE_CONFIG['HOST'])
+
+DATABASES = {'default': dj_database_url.config()}
 
 
 # Password validation
@@ -153,8 +148,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-DRAW_TOKEN = os.environ.get('DRAW_TOKEN')
+STATIC_ROOT = BASE_DIR / 'static'
 
-if PYTHON_ENV != 'development':
-    import django_heroku
-    django_heroku.settings(locals())
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+DRAW_TOKEN = os.environ.get('DRAW_TOKEN')
