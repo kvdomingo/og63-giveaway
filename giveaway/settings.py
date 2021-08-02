@@ -107,7 +107,7 @@ else:
     DATABASE_CONFIG = dj_database_url.parse(DATABASE_URL)
     DATABASE_CONFIG['HOST'] = urllib.parse.unquote(DATABASE_CONFIG['HOST'])
 
-DATABASES = {'default': dj_database_url.config()}
+DATABASES = {'default': DATABASE_CONFIG}
 
 
 # Password validation
