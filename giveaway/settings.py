@@ -12,8 +12,10 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import os
 import dj_database_url
+import urllib
 from pathlib import Path
 from dotenv import load_dotenv
+from django.core.management.utils import get_random_secret_key
 
 load_dotenv()
 
@@ -25,21 +27,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY', default=get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(int(os.environ.get('DEBUG')))
+DEBUG = bool(int(os.environ.get('DEBUG', '0')))
 
-PYTHON_ENV = os.environ.get('PYTHON_ENV')
+PYTHON_ENV = os.environ.get('PYTHON_ENV', 'production')
 
-ALLOWED_HOSTS = [
-    '.herokuapp.com',
-]
+ALLOWED_HOSTS = ['giveaway.kvdstudio.app']
 
 if DEBUG:
     ALLOWED_HOSTS.extend([
         'localhost',
         '127.0.0.1',
+        '0.0.0.0',
     ])
 
 
@@ -60,6 +61,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -70,18 +72,23 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'giveaway.urls'
 
-CORS_ORIGIN_ALLOW_ALL = DEBUG
+CORS_ORIGIN_ALLOW_ALL = False
 
-CORS_ORIGIN_WHITELIST = [
-    'https://grownsquad-giveaway.vercel.app',
-    'http://localhost',
-    'http://127.0.0.1',
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'https:\/\/.*\.kvdstudio\.app',
 ]
+
+if DEBUG:
+    CORS_ALLOWED_ORIGIN_REGEXES.extend([
+        r'http:\/\/localhost:\d{4,}',
+        r'http:\/\/127\.0\.0\.1:\d{4,}',
+        r'http:\/\/0\.0\.0\.0:\d{4,}',
+    ])
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'web' / 'app'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -101,18 +108,15 @@ WSGI_APPLICATION = 'giveaway.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 if PYTHON_ENV == 'development':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('DB_NAME'),
-            'HOST': '127.0.0.1',
-            'PORT': 3306,
-            'USER': os.environ.get('DB_USER'),
-            'PASSWORD': os.environ.get('DB_PASSWORD'),
-        }
-    }
+    DATABASE_CONFIG = dj_database_url.config()
 else:
-    DATABASES = {'default': dj_database_url.config()}
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    DATABASE_CONFIG = dj_database_url.parse(DATABASE_URL)
+    DATABASE_CONFIG['HOST'] = urllib.parse.unquote(DATABASE_CONFIG['HOST'])
+
+DATABASES = {'default': DATABASE_CONFIG}
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 
 # Password validation
@@ -153,8 +157,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-DRAW_TOKEN = os.environ.get('DRAW_TOKEN')
+STATIC_ROOT = BASE_DIR / 'static'
 
-if PYTHON_ENV != 'development':
-    import django_heroku
-    django_heroku.settings(locals())
+STATICFILES_DIRS = [BASE_DIR / 'web' / 'app' / 'static']
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+DRAW_TOKEN = os.environ.get('DRAW_TOKEN')
