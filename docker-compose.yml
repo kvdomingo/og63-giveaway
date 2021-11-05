@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      target: prod
+      args:
+        REACT_APP_DRAW_TOKEN: ${DRAW_TOKEN}
+    image: kvdomingo/og63-giveaway:latest
+    env_file: .env
+    ports:
+      - ${PORT}:${PORT}
